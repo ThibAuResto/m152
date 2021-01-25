@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,6 +29,7 @@
     <link href="assets/css/post.css" rel="stylesheet" />
   </head>
   <body class="text-center">
+    
     <main class="form-signin">
       <form>
         <img
@@ -41,26 +42,25 @@
         <h1 class="h3 mb-3 fw-normal">Post</h1>
         <label for="textArea" class="visually-hidden">textArea</label>
         <textarea
-          class="form-control"
+          class="mb-3 form-control"
           id="textArea"
         ></textarea>
-        <br />
 
         <label for="inputFile" class="visually-hidden">Image</label>
         <input
           type="file"
           name="image"
           id="inputFile"
-          class="form-control-file"
-          accept="image/png, image/jpeg, image/jpg"
+          class="mb-3 form-control-file"
+          accept="image/*"
           multiple
         />
-        <br />
-        <br />
-
-        <button class="w-100 btn btn-lg btn-primary" type="submit">
+        <button class="w-100 mb-1 btn btn-lg btn-success" type="submit">
           Soumettre
         </button>
+        <a class="w-100 btn btn-lg btn-danger" type="submit" href="index.html">
+          Retour à l'accueil
+        </a>
       </form>
     </main>
   </body>
