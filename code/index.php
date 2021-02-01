@@ -24,7 +24,7 @@
                         <nav class="collapse navbar-collapse" role="navigation">
                             <div class="navbar-header">
                                 <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse"></button>
-                                <a href="index.html" class="navbar-brand logo">b</a>
+                                <a href="index.php" class="navbar-brand logo">b</a>
                             </div>
                             <form class="navbar-form navbar-left">
                                 <div class="input-group input-group-sm" style="max-width: 360px">
@@ -41,7 +41,7 @@
                                     <a href="#"><i class="glyphicon glyphicon-home"></i> Home</a>
                                 </li>
                                 <li>
-                                    <a href="post.html" role="button">
+                                    <a href="post.php" role="button">
                                         <i class="glyphicon glyphicon-plus"></i>Post
                                     </a>
                                 </li>

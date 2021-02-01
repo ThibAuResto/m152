@@ -1,67 +1,61 @@
+<?php
+require_once "assets/php/functions.inc.php";
+$submit = filter_input(INPUT_POST, 'submit', FILTER_SANITIZE_STRING);
+$textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_STRING);
+$medias = $_FILES['mediaFiles'];
+$tmpMedias = array();
+
+// Press Submit
+if (isset($submit) && !empty($submit)) {
+    // A file is detected?
+    if (isset($medias) && !empty($medias)) {
+        // Create temporary array with the name, the type and the size
+        for ($i = 0; $i < count($medias['name']); $i++)
+            // The media is under 70 megabytes and is it an image?
+            if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false)
+                array_push($tmpMedias, array(
+                    'name' => $medias['name'][$i],
+                    'type' => $medias['type'][$i]
+                ));
+        InsertPost($textArea);
+        InsertMedia($tmpMedias, GetLastPost());
+    }
+    // TODO verif 70 mega, move_upload_file
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Post - Thibault Capt</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <!-- Custom styles for this template -->
-    <link href="assets/css/post.css" rel="stylesheet" />
-  </head>
-  <body class="text-center">
-    
-    <main class="form-signin">
-      <form>
-        <img
-          class="mb-4"
-          src="assets/img/image.svg"
-          alt="Image"
-          width="96"
-          height="96"
-        />
+    <link href="assets/css/post.css" rel="stylesheet"/>
+</head>
+<body class="text-center">
+<main class="form-signin">
+    <form action="post.php" method="post" enctype="multipart/form-data">
+        <!-- header -->
+        <img class="mb-4" src="assets/img/image.svg" alt="Image" width="96" height="96"/>
         <h1 class="h3 mb-3 fw-normal">Post</h1>
-        <label for="textArea" class="visually-hidden">textArea</label>
-        <textarea
-          class="mb-3 form-control"
-          id="textArea"
-        ></textarea>
 
-        <label for="inputFile" class="visually-hidden">Image</label>
-        <input
-          type="file"
-          name="image"
-          id="inputFile"
-          class="mb-3 form-control-file"
-          accept="image/*"
-          multiple
-        />
-        <button class="w-100 mb-1 btn btn-lg btn-success" type="submit">
-          Soumettre
-        </button>
-        <a class="w-100 btn btn-lg btn-danger" type="submit" href="index.html">
-          Retour à l'accueil
-        </a>
-      </form>
-    </main>
-  </body>
+        <!-- textArea -->
+        <label for="textArea" class="visually-hidden">textArea</label>
+        <textarea class="mb-3 form-control" id="textArea" name="textArea" required></textarea>
+
+        <!-- Files -->
+        <label for="inputFile" class="visually-hidden">Media</label>
+        <input type="file" name="mediaFiles[]" id="inputFile" class="mb-3 form-control-file" accept="image/*" multiple
+               required/>
+
+        <!-- Buttons -->
+        <input class="w-100 mb-1 btn btn-lg btn-success" type="submit" name="submit" value="Soumettre"/>
+        <a class="w-100 btn btn-lg btn-danger" type="submit" href="index.php">Retour à l'accueil</a>
+    </form>
+</main>
+</body>
 </html>
