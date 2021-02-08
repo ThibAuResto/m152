@@ -16,30 +16,28 @@ $error = "";
 if (isset($submit) && !empty($submit)) {
     // A file is detected?
     if (isset($medias) && !empty($medias)) {
-        // Insert the post in the db
-        InsertPost($textArea);
         // Add the size to know when the size is 70 mega
         $tmpSize = GetSizeOfTheUploadImages($medias);
 
         // Create temporary array with the name, the type and the size
-        for ($i = 0; $i < count($medias['name']); $i++)
-
-        // The media is under 3 megabytes, is it an image and the total is under 70 mega?
-        if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false && $tmpSize <= 70 * pow(10, 6)) {
-            $name = GetRandomString();
-            array_push($tmpMedias, array(
-                'name' => $name,
-                'type' => $medias['type'][$i]
-            ));
-            InsertMedia($tmpMedias, GetLastPost());
-            $tmpMedias = array();
-            //Move uploaded file
-            move_uploaded_file($medias['tmp_name'][$i], $uploadsDir . $name);
-
-            // Result
-            $result = "Le post a bien été pris en compte";
-        } else // If an error is detected
-            $error = "Une erreur a été détectée lors de l'ajout des images";
+        for ($i = 0; $i < count($medias['name']); $i++) {
+            // The media is under 3 megabytes, is it an image and the total is under 70 mega?
+            if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false && $tmpSize <= 70 * pow(10, 6)) {
+                $name = GetRandomString();
+                // if the file has been move
+                if (move_uploaded_file($medias['tmp_name'][$i], $uploadsDir . $name)) {
+                    array_push($tmpMedias, array(
+                        'name' => $name,
+                        'type' => $medias['type'][$i]
+                    ));
+                    RegroupInsert($tmpMedias, GetLastPost(), $textArea);
+                    $tmpMedias = array();
+                    // Result
+                    $result = "Le post a bien été pris en compte";
+                }
+            } else // If an error is detected
+                $error = "Une erreur a été détectée lors de l'ajout des images";
+        }
     }
 }
 ?>

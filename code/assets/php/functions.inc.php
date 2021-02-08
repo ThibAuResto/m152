@@ -73,6 +73,18 @@ function InsertMedia($files, $idPost): bool
     }
 }
 
+// TODO begin transaction
+function RegroupInsert($files, $idPost, $textArea){
+    static $dbh = null;
+    if($dbh == null)
+        $dbh->beginTransaction();
+
+    if($dbh->exec(InsertPost($textArea)) && $dbh->exec(InsertMedia($files, $idPost)))
+      return $dbh->commit();
+    else
+      return $dbh->rollBack();
+}
+
 /**
  * Get the last entry in the table post
  * @return false|mixed
