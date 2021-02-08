@@ -1,26 +1,46 @@
 <?php
 require_once "assets/php/functions.inc.php";
+
 $submit = filter_input(INPUT_POST, 'submit', FILTER_SANITIZE_STRING);
 $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_STRING);
+
 $medias = $_FILES['mediaFiles'];
+$uploadsDir = "assets/uploads/";
+
 $tmpMedias = array();
+$tmpSize = 0;
+$result = "";
+$error = "";
 
 // Press Submit
 if (isset($submit) && !empty($submit)) {
     // A file is detected?
     if (isset($medias) && !empty($medias)) {
+        // Add the size to know when the size is 70 mega
+        $tmpSize = GetSizeOfTheUploadImages($medias);
+
         // Create temporary array with the name, the type and the size
         for ($i = 0; $i < count($medias['name']); $i++)
-            // The media is under 70 megabytes and is it an image?
-            if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false)
-                array_push($tmpMedias, array(
-                    'name' => $medias['name'][$i],
-                    'type' => $medias['type'][$i]
-                ));
+
+        // The media is under 3 megabytes, is it an image and the total is under 70 mega?
+        if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false && $tmpSize <= 70 * pow(10, 6)) {
+            $name = GetRandomString();
+            array_push($tmpMedias, array(
+                'name' => $name,
+                'type' => $medias['type'][$i]
+            ));
+
+            //Move uploaded file
+            move_uploaded_file($medias['tmp_name'][$i], $uploadsDir . $name);
+
+            // Result
+            $result = "Le post a bien été pris en compte";
+        } else // If an error is detected
+            $error = "Une erreur a été détectée lors de l'ajout des images";
+
         InsertPost($textArea);
         InsertMedia($tmpMedias, GetLastPost());
     }
-    // TODO verif 70 mega, move_upload_file
 }
 ?>
 <!DOCTYPE html>
@@ -55,6 +75,8 @@ if (isset($submit) && !empty($submit)) {
         <!-- Buttons -->
         <input class="w-100 mb-1 btn btn-lg btn-success" type="submit" name="submit" value="Soumettre"/>
         <a class="w-100 btn btn-lg btn-danger" type="submit" href="index.php">Retour à l'accueil</a>
+        <p class="text-success"><?= $result ?></p>
+        <p class="text-danger"><?= $error ?></p>
     </form>
 </main>
 </body>

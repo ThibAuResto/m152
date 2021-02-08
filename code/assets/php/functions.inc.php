@@ -71,3 +71,35 @@ function GetLastPost()
         return false;
     }
 }
+
+/**
+ * Get a random string for the name of the image
+ *
+ * @param int $lenght
+ * @return string
+ */
+function GetRandomString($lenght = 10): string
+{
+    $char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $maxLenght = strlen($char);
+    $randomString = '';
+    for ($i = 0; $i < $lenght; $i++)
+    {
+        $randomString .= $char[rand(0, $maxLenght - 1)];
+    }
+    return $randomString;
+}
+
+/**
+ * Get the size of the uploaded images
+ *
+ * @param $images
+ * @return int
+ */
+function GetSizeOfTheUploadImages($images): int
+{
+    $result = 0;
+    foreach ($images['size'] as $i)
+        $result += $i;
+    return $result;
+}
