@@ -77,7 +77,7 @@ function InsertMedia($files, $idPost): bool
 function RegroupInsert($files, $idPost, $textArea){
     static $dbh = null;
     if($dbh == null)
-        $dbh->beginTransaction();
+        $dbh = connectDB()->beginTransaction();
 
     if($dbh->exec(InsertPost($textArea)) && $dbh->exec(InsertMedia($files, $idPost)))
       return $dbh->commit();
