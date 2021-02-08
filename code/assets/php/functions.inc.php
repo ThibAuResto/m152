@@ -4,12 +4,33 @@
 require_once "database.php";
 
 /**
+ * Read all post
+ *
+ * @return bool
+ */
+function ReadAllPost()
+{
+    static $ps = null;
+    $sql = "SELECT * FROM post INNER JOIN media ON post.idPost = media.idPost";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+        if($ps->execute())
+            return $ps->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+/**
  * Insert a new post in the database
  *
  * @param $textArea
  * @return bool
  */
-function InsertPost($textArea)
+function InsertPost($textArea): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
@@ -32,7 +53,7 @@ function InsertPost($textArea)
  * @param $idPost
  * @return bool
  */
-function InsertMedia($files, $idPost)
+function InsertMedia($files, $idPost): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `media` (`typeMedia`, `nomMedia`, `idPost`) VALUES (:TYPEMEDIA, :NOMMEDIA, :IDPOST)";
@@ -101,5 +122,31 @@ function GetSizeOfTheUploadImages($images): int
     $result = 0;
     foreach ($images['size'] as $i)
         $result += $i;
+    return $result;
+}
+
+/**
+ * Write all posts
+ *
+ * @param $posts
+ * @return string
+ */
+function WriteAllPost($posts): string
+{
+    $result = "";
+    for ($i = 0; $i < count($posts); $i++){
+    $result .=  "<div class='panel panel-default'>"
+        ."<div class='panel-heading'>"
+            ."<div class='panel panel-default'>"
+                ."<div class='panel-thumbnail'>"
+                   ."<img src='assets/uploads/" . $posts[$i]['nomMedia'] . "' class='img-responsive'/>"
+                ."</div>"
+                ."<div class='panel-body'>"
+                    ."<p class='lead'>" . $posts[$i]['commentaire'] . "</p>"
+                ."</div>"
+            ."</div>"
+        ."</div>"
+    ."</div>";
+    }
     return $result;
 }

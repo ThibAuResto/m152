@@ -16,6 +16,8 @@ $error = "";
 if (isset($submit) && !empty($submit)) {
     // A file is detected?
     if (isset($medias) && !empty($medias)) {
+        // Insert the post in the db
+        InsertPost($textArea);
         // Add the size to know when the size is 70 mega
         $tmpSize = GetSizeOfTheUploadImages($medias);
 
@@ -29,7 +31,8 @@ if (isset($submit) && !empty($submit)) {
                 'name' => $name,
                 'type' => $medias['type'][$i]
             ));
-
+            InsertMedia($tmpMedias, GetLastPost());
+            $tmpMedias = array();
             //Move uploaded file
             move_uploaded_file($medias['tmp_name'][$i], $uploadsDir . $name);
 
@@ -37,9 +40,6 @@ if (isset($submit) && !empty($submit)) {
             $result = "Le post a bien été pris en compte";
         } else // If an error is detected
             $error = "Une erreur a été détectée lors de l'ajout des images";
-
-        InsertPost($textArea);
-        InsertMedia($tmpMedias, GetLastPost());
     }
 }
 ?>
