@@ -30,13 +30,15 @@ function ReadAllPost()
  * @param $textArea
  * @return bool
  */
-function InsertPost($textArea): bool
+function InsertPost($dbh, $textArea): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
     try {
-        if ($ps == null)
-            $ps = connectDB()->prepare($sql);
+        if ($ps == null) {
+            $dbh = connectDB();
+            $ps = $dbh->prepare($sql);
+        }
 
         $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
         return $ps->execute();
@@ -49,17 +51,20 @@ function InsertPost($textArea): bool
 /**
  * Insert a new media in the database
  *
+ * @param $dbh
  * @param $files
  * @param $idPost
  * @return bool
  */
-function InsertMedia($files, $idPost): bool
+function InsertMedia($dbh, $files, $idPost): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `media` (`typeMedia`, `nomMedia`, `idPost`) VALUES (:TYPEMEDIA, :NOMMEDIA, :IDPOST)";
     try {
-        if ($ps == null)
-            $ps = connectDB()->prepare($sql);
+        if ($ps == null) {
+            $dbh = connectDB();
+            $ps = $dbh->prepare($sql);
+        }
 
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
@@ -86,10 +91,9 @@ function RegroupInsert($files, $textArea)
     if ($dbh == null)
         $dbh = connectDB()->beginTransaction();
     try {
-        InsertPost($textArea);
-        InsertMedia($files, GetLastPost()["idPost"]);
-        if($dbh->commit())
-            return true;
+        InsertPost($dbh, $textArea);
+        InsertMedia($dbh, $files, GetLastPost($dbh)["idPost"]);
+        return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
         return $dbh->rollBack();
@@ -100,18 +104,20 @@ function RegroupInsert($files, $textArea)
  * Get the last entry in the table post
  * @return false|mixed
  */
-function GetLastPost()
+function GetLastPost($dbh)
 {
     static $ps = null;
     $sql = "SELECT idPost FROM post ORDER BY idPost DESC LIMIT 1";
     try {
-        if ($ps == null)
-            $ps = connectDB()->prepare($sql);
+        if ($ps == null) {
+            $dbh = connectDB();
+            $ps = $dbh->prepare($sql);
+        }
         if ($ps->execute())
             return $ps->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         echo $e->getMessage();
-        return false;
+        return "";
     }
 }
 
