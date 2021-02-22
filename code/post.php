@@ -30,7 +30,7 @@ if (isset($submit) && !empty($submit)) {
                         'name' => $name,
                         'type' => $medias['type'][$i]
                     ));
-                    RegroupInsert($tmpMedias, GetLastPost(), $textArea);
+                    RegroupInsert($tmpMedias, $textArea);
                     $tmpMedias = array();
                     // Result
                     $result = "Le post a bien été pris en compte";
@@ -63,12 +63,11 @@ if (isset($submit) && !empty($submit)) {
 
         <!-- textArea -->
         <label for="textArea" class="visually-hidden">textArea</label>
-        <textarea class="mb-3 form-control" id="textArea" name="textArea" required></textarea>
+        <textarea class="mb-3 form-control" id="textArea" name="textArea" required autofocus></textarea>
 
         <!-- Files -->
         <label for="inputFile" class="visually-hidden">Media</label>
-        <input type="file" name="mediaFiles[]" id="inputFile" class="mb-3 form-control-file" accept="image/*" multiple
-               required/>
+        <input type="file" name="mediaFiles[]" id="inputFile" class="mb-3 form-control-file" accept="image/*" multiple required/>
 
         <!-- Buttons -->
         <input class="w-100 mb-1 btn btn-lg btn-success" type="submit" name="submit" value="Soumettre"/>

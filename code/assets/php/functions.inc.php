@@ -16,7 +16,7 @@ function ReadAllPost()
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
-        if($ps->execute())
+        if ($ps->execute())
             return $ps->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -38,7 +38,7 @@ function InsertPost($textArea): bool
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
-            $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
+        $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
         return $ps->execute();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -64,7 +64,7 @@ function InsertMedia($files, $idPost): bool
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
             $ps->bindParam(":NOMMEDIA", $value['name'], PDO::PARAM_STR);
-            $ps->bindParam(":IDPOST", $idPost['idPost'], PDO::PARAM_INT);
+            $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
         }
         return $ps->execute();
     } catch (Exception $e) {
@@ -73,16 +73,27 @@ function InsertMedia($files, $idPost): bool
     }
 }
 
-// TODO begin transaction
-function RegroupInsert($files, $idPost, $textArea){
+/**
+ * Transaction of the two query
+ *
+ * @param $files
+ * @param $textArea
+ * @return mixed
+ */
+function RegroupInsert($files, $textArea)
+{
     static $dbh = null;
-    if($dbh == null)
+    if ($dbh == null)
         $dbh = connectDB()->beginTransaction();
-
-    if($dbh->exec(InsertPost($textArea)) && $dbh->exec(InsertMedia($files, $idPost)))
-      return $dbh->commit();
-    else
-      return $dbh->rollBack();
+    try {
+        InsertPost($textArea);
+        InsertMedia($files, GetLastPost()["idPost"]);
+        if($dbh->commit())
+            return true;
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return $dbh->rollBack();
+    }
 }
 
 /**
@@ -96,8 +107,7 @@ function GetLastPost()
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
-
-        if($ps->execute())
+        if ($ps->execute())
             return $ps->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -116,8 +126,7 @@ function GetRandomString($lenght = 10): string
     $char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $maxLenght = strlen($char);
     $randomString = '';
-    for ($i = 0; $i < $lenght; $i++)
-    {
+    for ($i = 0; $i < $lenght; $i++) {
         $randomString .= $char[rand(0, $maxLenght - 1)];
     }
     return $randomString;
@@ -146,19 +155,19 @@ function GetSizeOfTheUploadImages($images): int
 function WriteAllPost($posts): string
 {
     $result = "";
-    for ($i = 0; $i < count($posts); $i++){
-    $result .=  "<div class='panel panel-default'>"
-        ."<div class='panel-heading'>"
-            ."<div class='panel panel-default'>"
-                ."<div class='panel-thumbnail'>"
-                   ."<img src='assets/uploads/" . $posts[$i]['nomMedia'] . "' class='img-responsive'/>"
-                ."</div>"
-                ."<div class='panel-body'>"
-                    ."<p class='lead'>" . $posts[$i]['commentaire'] . "</p>"
-                ."</div>"
-            ."</div>"
-        ."</div>"
-    ."</div>";
+    for ($i = 0; $i < count($posts); $i++) {
+        $result .= "<div class='panel panel-default'>"
+            . "<div class='panel-heading'>"
+            . "<div class='panel panel-default'>"
+            . "<div class='panel-thumbnail'>"
+            . "<img src='assets/uploads/" . $posts[$i]['nomMedia'] . "' class='img-responsive'/>"
+            . "</div>"
+            . "<div class='panel-body'>"
+            . "<p class='lead'>" . $posts[$i]['commentaire'] . "</p>"
+            . "</div>"
+            . "</div>"
+            . "</div>"
+            . "</div>";
     }
     return $result;
 }
