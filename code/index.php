@@ -2,6 +2,21 @@
 require_once "assets/php/functions.inc.php";
 
 $posts = ReadAllPost();
+$new = array();
+$compteur = 0;
+
+for ($i = 0; $i < count($posts); $i++) {
+    if(!array_key_exists($posts[$i]["idPost"], $new)) {
+        $new[$posts[$i]["idPost"]] = array(
+                'commentaire' => $posts[$i]["commentaire"],
+                'img' => array(
+                    $posts[$i]["nomMedia"],
+                )
+        );
+    } else
+        array_push($new[$posts[$i]["idPost"]]["img"], $posts[$i]["nomMedia"]);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -102,7 +117,7 @@ $posts = ReadAllPost();
                                     <h1>Welcome</h1>
                                 </div>
 
-                                <?= WriteAllPost($posts) ?>
+                                <?= WriteAllPost($new) ?>
                                 <!--/row-->
 
                                 <div class="row">

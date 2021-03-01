@@ -6,7 +6,7 @@ require_once "database.php";
 /**
  * Read all post
  *
- * @return bool
+ * @return array|false
  */
 function ReadAllPost()
 {
@@ -30,15 +30,15 @@ function ReadAllPost()
  * @param $textArea
  * @return bool
  */
-function InsertPost($dbh, $textArea): bool
+function InsertPost($textArea): bool
 {
+    if (LastPost()["commentaire"] === $textArea)
+        return false;
     static $ps = null;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
     try {
-        if ($ps == null) {
-            $dbh = connectDB();
-            $ps = $dbh->prepare($sql);
-        }
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
 
         $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
         return $ps->execute();
@@ -49,22 +49,40 @@ function InsertPost($dbh, $textArea): bool
 }
 
 /**
+ * Check if the post has been already created
+ *
+ * @return mixed
+ */
+function LastPost()
+{
+    static $ps = null;
+    $sql = "SELECT commentaire FROM post ORDER BY idPost DESC LIMIT 1";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+        if ($ps->execute())
+            return $ps->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+/**
  * Insert a new media in the database
  *
- * @param $dbh
  * @param $files
  * @param $idPost
  * @return bool
  */
-function InsertMedia($dbh, $files, $idPost): bool
+function InsertMedia($files, $idPost): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `media` (`typeMedia`, `nomMedia`, `idPost`) VALUES (:TYPEMEDIA, :NOMMEDIA, :IDPOST)";
     try {
-        if ($ps == null) {
-            $dbh = connectDB();
-            $ps = $dbh->prepare($sql);
-        }
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
 
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
@@ -85,14 +103,15 @@ function InsertMedia($dbh, $files, $idPost): bool
  * @param $textArea
  * @return mixed
  */
-function RegroupInsert($files, $textArea)
+function Transaction($files, $textArea)
 {
     static $dbh = null;
     if ($dbh == null)
-        $dbh = connectDB()->beginTransaction();
+        $dbh = connectDB();
+    $dbh->beginTransaction();
     try {
-        InsertPost($dbh, $textArea);
-        InsertMedia($dbh, $files, GetLastPost($dbh)["idPost"]);
+        InsertPost($textArea);
+        InsertMedia($files, GetLastPost()["idPost"]);
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -104,17 +123,10 @@ function RegroupInsert($files, $textArea)
  * Get the last entry in the table post
  * @return false|mixed
  */
-function GetLastPost($dbh)
+function GetLastPost()
 {
-    static $ps = null;
-    $sql = "SELECT idPost FROM post ORDER BY idPost DESC LIMIT 1";
     try {
-        if ($ps == null) {
-            $dbh = connectDB();
-            $ps = $dbh->prepare($sql);
-        }
-        if ($ps->execute())
-            return $ps->fetch(PDO::FETCH_ASSOC);
+        return connectDB()->lastInsertId();
     } catch (Exception $e) {
         echo $e->getMessage();
         return "";
@@ -161,15 +173,16 @@ function GetSizeOfTheUploadImages($images): int
 function WriteAllPost($posts): string
 {
     $result = "";
-    for ($i = 0; $i < count($posts); $i++) {
+    foreach ($posts as $p) {
         $result .= "<div class='panel panel-default'>"
             . "<div class='panel-heading'>"
             . "<div class='panel panel-default'>"
-            . "<div class='panel-thumbnail'>"
-            . "<img src='assets/uploads/" . $posts[$i]['nomMedia'] . "' class='img-responsive'/>"
-            . "</div>"
+            . "<div class='panel-thumbnail'>";
+        foreach ($p['img'] as $img)
+            $result .= "<img alt='Post' src='assets/uploads/" . $img . "' class='img-responsive'/>";
+        $result .= "</div>"
             . "<div class='panel-body'>"
-            . "<p class='lead'>" . $posts[$i]['commentaire'] . "</p>"
+            . "<p class='lead'>" . $p['commentaire'] . "</p>"
             . "</div>"
             . "</div>"
             . "</div>"

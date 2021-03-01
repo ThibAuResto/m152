@@ -30,7 +30,7 @@ if (isset($submit) && !empty($submit)) {
                         'name' => $name,
                         'type' => $medias['type'][$i]
                     ));
-                    RegroupInsert($tmpMedias, $textArea);
+                    Transaction($tmpMedias, $textArea);
                     $tmpMedias = array();
                     // Result
                     $result = "Le post a bien été pris en compte";
