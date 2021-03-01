@@ -22,7 +22,7 @@ if (isset($submit) && !empty($submit)) {
         // Create temporary array with the name, the type and the size
         for ($i = 0; $i < count($medias['name']); $i++) {
             // The media is under 3 megabytes, is it an image and the total is under 70 mega?
-            if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false && $tmpSize <= 70 * pow(10, 6)) {
+            if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false || strpos($medias["type"][$i], "video/") !== false && $tmpSize <= 70 * pow(10, 6)) {
                 $name = GetRandomString();
                 // if the file has been move
                 if (move_uploaded_file($medias['tmp_name'][$i], $uploadsDir . $name)) {
@@ -67,7 +67,7 @@ if (isset($submit) && !empty($submit)) {
 
         <!-- Files -->
         <label for="inputFile" class="visually-hidden">Media</label>
-        <input type="file" name="mediaFiles[]" id="inputFile" class="mb-3 form-control-file" accept="image/*" multiple required/>
+        <input type="file" name="mediaFiles[]" id="inputFile" class="mb-3 form-control-file" accept="image/*, video/*" multiple required/>
 
         <!-- Buttons -->
         <input class="w-100 mb-1 btn btn-lg btn-success" type="submit" name="submit" value="Soumettre"/>

@@ -5,6 +5,7 @@ $posts = ReadAllPost();
 $new = array();
 $compteur = 0;
 
+// Create the new array with the images connect with the post
 for ($i = 0; $i < count($posts); $i++) {
     if(!array_key_exists($posts[$i]["idPost"], $new)) {
         $new[$posts[$i]["idPost"]] = array(

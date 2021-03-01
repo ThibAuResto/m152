@@ -28,12 +28,12 @@ function ReadAllPost()
  * Insert a new post in the database
  *
  * @param $textArea
- * @return bool
+ * @return int|bool
  */
-function InsertPost($textArea): bool
+function InsertPost($textArea)
 {
     if (LastPost()["commentaire"] === $textArea)
-        return false;
+        return intval(connectDB()->lastInsertId());
     static $ps = null;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
     try {
@@ -41,7 +41,8 @@ function InsertPost($textArea): bool
             $ps = connectDB()->prepare($sql);
 
         $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
-        return $ps->execute();
+        if($ps->execute())
+            return intval(connectDB()->lastInsertId());
     } catch (Exception $e) {
         echo $e->getMessage();
         return false;
@@ -73,10 +74,9 @@ function LastPost()
  * Insert a new media in the database
  *
  * @param $files
- * @param $idPost
  * @return bool
  */
-function InsertMedia($files, $idPost): bool
+function InsertMedia($files, $id): bool
 {
     static $ps = null;
     $sql = "INSERT INTO `media` (`typeMedia`, `nomMedia`, `idPost`) VALUES (:TYPEMEDIA, :NOMMEDIA, :IDPOST)";
@@ -87,7 +87,7 @@ function InsertMedia($files, $idPost): bool
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
             $ps->bindParam(":NOMMEDIA", $value['name'], PDO::PARAM_STR);
-            $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
+            $ps->bindParam(":IDPOST", $id, PDO::PARAM_INT);
         }
         return $ps->execute();
     } catch (Exception $e) {
@@ -110,8 +110,8 @@ function Transaction($files, $textArea)
         $dbh = connectDB();
     $dbh->beginTransaction();
     try {
-        InsertPost($textArea);
-        InsertMedia($files, GetLastPost()["idPost"]);
+        $id = InsertPost($textArea);
+        InsertMedia($files, $id);
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -121,15 +121,15 @@ function Transaction($files, $textArea)
 
 /**
  * Get the last entry in the table post
- * @return false|mixed
+ * @return int|bool
  */
 function GetLastPost()
 {
     try {
-        return connectDB()->lastInsertId();
+        return intval(connectDB()->lastInsertId());
     } catch (Exception $e) {
         echo $e->getMessage();
-        return "";
+        return false;
     }
 }
 
@@ -159,8 +159,10 @@ function GetRandomString($lenght = 10): string
 function GetSizeOfTheUploadImages($images): int
 {
     $result = 0;
-    foreach ($images['size'] as $i)
-        $result += $i;
+    for ($i = 0; $i < count($images); $i++) {
+        if (strpos($images["type"][$i], "image/") !== false)
+            $result += $images["size"][$i];
+    }
     return $result;
 }
 
