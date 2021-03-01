@@ -34,6 +34,7 @@ function InsertPost($textArea) : bool
 {
     if (LastPost()["commentaire"] === $textArea)
         return false;
+    static $ps = null;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
     try {
         if ($ps == null)
