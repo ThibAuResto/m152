@@ -28,7 +28,7 @@ function ReadAllPost()
  * Insert a new post in the database
  *
  * @param $textArea
- * @return bool
+ * @return int|bool
  */
 function InsertPost($textArea) : bool
 {
@@ -40,7 +40,8 @@ function InsertPost($textArea) : bool
             $ps = connectDB()->prepare($sql);
 
         $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
-        return $ps->execute();
+        if($ps->execute())
+            return intval(connectDB()->lastInsertId());
     } catch (Exception $e) {
         echo $e->getMessage();
         return false;
@@ -190,6 +191,12 @@ function WriteAllPost($posts): string
         $result .= "</div>"
             . "<div class='panel-body'>"
             . "<p class='lead'>" . $p['commentaire'] . "</p>"
+            . "<a class='btn btn-link' href='#'>"
+            . "<img alt='modif' src='assets/img/editing.png'/>"
+            . "</a>"
+            . "<a class='btn btn-link' href='#'>"
+            . "<img alt='supp' src='assets/img/delete.png'/>"
+            . "</a>"
             . "</div>"
             . "</div>"
             . "</div>"
