@@ -28,21 +28,19 @@ function ReadAllPost()
  * Insert a new post in the database
  *
  * @param $textArea
- * @return int|bool
+ * @return bool
  */
-function InsertPost($textArea)
+function InsertPost($textArea) : bool
 {
     if (LastPost()["commentaire"] === $textArea)
-        return intval(connectDB()->lastInsertId());
-    static $ps = null;
+        return false;
     $sql = "INSERT INTO `post` (`commentaire`) VALUES (:COMMENTAIRE)";
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
         $ps->bindParam(":COMMENTAIRE", $textArea, PDO::PARAM_STR);
-        if($ps->execute())
-            return intval(connectDB()->lastInsertId());
+        return $ps->execute();
     } catch (Exception $e) {
         echo $e->getMessage();
         return false;
@@ -52,7 +50,7 @@ function InsertPost($textArea)
 /**
  * Check if the post has been already created
  *
- * @return mixed
+ * @return array|bool
  */
 function LastPost()
 {
@@ -74,6 +72,7 @@ function LastPost()
  * Insert a new media in the database
  *
  * @param $files
+ * @param $id
  * @return bool
  */
 function InsertMedia($files, $id): bool
@@ -110,8 +109,8 @@ function Transaction($files, $textArea)
         $dbh = connectDB();
     $dbh->beginTransaction();
     try {
-        $id = InsertPost($textArea);
-        InsertMedia($files, $id);
+        InsertPost($textArea);
+        InsertMedia($files, GetLastPost());
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -125,8 +124,14 @@ function Transaction($files, $textArea)
  */
 function GetLastPost()
 {
-    try {
-        return intval(connectDB()->lastInsertId());
+        static $ps = null;
+        $sql = "SELECT idPost FROM post ORDER BY idPost DESC LIMIT 1";
+        try {
+            if ($ps == null)
+                $ps = connectDB()->prepare($sql);
+
+            if ($ps->execute())
+                return $ps->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         echo $e->getMessage();
         return false;
