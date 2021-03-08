@@ -7,15 +7,21 @@ $compteur = 0;
 
 // Create the new array with the images connect with the post
 for ($i = 0; $i < count($posts); $i++) {
-    if(!array_key_exists($posts[$i]["idPost"], $new)) {
+    if (!array_key_exists($posts[$i]["idPost"], $new)) {
         $new[$posts[$i]["idPost"]] = array(
-                'commentaire' => $posts[$i]["commentaire"],
-                'img' => array(
-                    $posts[$i]["nomMedia"],
+            'commentaire' => $posts[$i]["commentaire"],
+            'medias' => array(
+                array(
+                    'media' => $posts[$i]["nomMedia"],
+                    'type' => $posts[$i]["typeMedia"]
                 )
+            )
         );
     } else
-        array_push($new[$posts[$i]["idPost"]]["img"], $posts[$i]["nomMedia"]);
+        array_push($new[$posts[$i]["idPost"]]["medias"], array(
+            'media' => $posts[$i]["nomMedia"],
+            'type' => $posts[$i]["typeMedia"]
+        ));
 }
 
 ?>
@@ -40,56 +46,7 @@ for ($i = 0; $i < count($posts); $i++) {
         <div class="row row-offcanvas row-offcanvas-left">
             <!-- main right col -->
             <div class="column col-sm-10 col-xs-11" id="main">
-                <!-- top nav -->
-                <div class="navbar navbar-blue navbar-static-top">
-                    <nav class="collapse navbar-collapse" role="navigation">
-                        <div class="navbar-header">
-                            <button class="navbar-toggle" type="button" data-toggle="collapse"
-                                    data-target=".navbar-collapse"></button>
-                            <a href="index.php" class="navbar-brand logo">b</a>
-                        </div>
-                        <form class="navbar-form navbar-left">
-                            <div class="input-group input-group-sm" style="max-width: 360px">
-                                <input class="form-control" placeholder="Search" name="srch-term" id="srch-term"
-                                       type="text"/>
-                                <div class="input-group-btn">
-                                    <button class="btn btn-default" type="submit">
-                                        <i class="glyphicon glyphicon-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                        <ul class="nav navbar-nav">
-                            <li>
-                                <a href="#"><i class="glyphicon glyphicon-home"></i> Home</a>
-                            </li>
-                            <li>
-                                <a href="post.php" role="button">
-                                    <i class="glyphicon glyphicon-plus"></i>Post
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#"><span class="badge">badge</span></a>
-                            </li>
-                        </ul>
-                        <ul class="nav navbar-nav navbar-right">
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <i class="glyphicon glyphicon-user"></i>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="">More</a></li>
-                                    <li><a href="">More</a></li>
-                                    <li><a href="">More</a></li>
-                                    <li><a href="">More</a></li>
-                                    <li><a href="">More</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-
-                <!-- /top nav -->
+                <?php require_once(__DIR__ . "/assets/php/nav.inc.php"); ?>
                 <div class="padding">
                     <div class="full col-sm-9">
                         <!-- content -->

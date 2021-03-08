@@ -17,7 +17,7 @@ if (isset($submit) && !empty($submit)) {
     // A file is detected?
     if (isset($medias) && !empty($medias)) {
         // Add the size to know when the size is 70 mega
-        $tmpSize = GetSizeOfTheUploadImages($medias);
+        $tmpSize = GetSizeOfTheUpload($medias);
 
         // Create temporary array with the name, the type and the size
         for ($i = 0; $i < count($medias['name']); $i++) {
@@ -30,7 +30,7 @@ if (isset($submit) && !empty($submit)) {
                         'name' => $name,
                         'type' => $medias['type'][$i]
                     ));
-                    Transaction($tmpMedias, $textArea);
+                    InsertMediaAndPost($tmpMedias, $textArea, $name, $uploadsDir);
                     $tmpMedias = array();
                     // Result
                     $result = "Le post a bien été pris en compte";
@@ -57,6 +57,7 @@ if (isset($submit) && !empty($submit)) {
 <body class="text-center">
 <main class="form-signin">
     <form action="post.php" method="post" enctype="multipart/form-data">
+
         <!-- header -->
         <img class="mb-4" src="assets/img/image.svg" alt="Image" width="96" height="96"/>
         <h1 class="h3 mb-3 fw-normal">Post</h1>

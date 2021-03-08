@@ -11,7 +11,7 @@ require_once "database.php";
 function ReadAllPost()
 {
     static $ps = null;
-    $sql = "SELECT * FROM post INNER JOIN media ON post.idPost = media.idPost";
+    $sql = "SELECT * FROM post INNER JOIN media ON post.idPost = media.idPost ORDER BY media.creationDate asc";
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
@@ -88,7 +88,7 @@ function InsertMedia($files, $id): bool
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
             $ps->bindParam(":NOMMEDIA", $value['name'], PDO::PARAM_STR);
-            $ps->bindParam(":IDPOST", $id, PDO::PARAM_INT);
+            $ps->bindParam(":IDPOST", $id["idPost"], PDO::PARAM_INT);
         }
         return $ps->execute();
     } catch (Exception $e) {
@@ -98,13 +98,15 @@ function InsertMedia($files, $id): bool
 }
 
 /**
- * Transaction of the two query
+ * Transaction of the query of insert a media and insert a post
  *
  * @param $files
  * @param $textArea
+ * @param $nameOfPost
+ * @param $uploadsDir
  * @return mixed
  */
-function Transaction($files, $textArea)
+function InsertMediaAndPost($files, $textArea, $nameOfPost, $uploadsDir)
 {
     static $dbh = null;
     if ($dbh == null)
@@ -116,7 +118,23 @@ function Transaction($files, $textArea)
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
+        RemoveLastInsertPostInTheFolder($nameOfPost, $uploadsDir);
         return $dbh->rollBack();
+    }
+}
+
+/**
+ * If we have an error with the transaction, remove the media in the folder
+ *
+ * @param $name
+ * @param $uploadsDir
+ */
+function RemoveLastInsertPostInTheFolder($name, $uploadsDir){
+    $path = $uploadsDir . DIRECTORY_SEPARATOR . $name;
+    try {
+        unlink($path);
+    } catch (Exception $e) {
+        echo $e->getMessage();
     }
 }
 
@@ -160,16 +178,14 @@ function GetRandomString($lenght = 10): string
 /**
  * Get the size of the uploaded images
  *
- * @param $images
+ * @param $medias
  * @return int
  */
-function GetSizeOfTheUploadImages($images): int
+function GetSizeOfTheUpload($medias): int
 {
     $result = 0;
-    for ($i = 0; $i < count($images); $i++) {
-        if (strpos($images["type"][$i], "image/") !== false)
-            $result += $images["size"][$i];
-    }
+    for ($i = 0; $i < count($medias["name"]); $i++)
+        $result += $medias["size"][$i];
     return $result;
 }
 
@@ -187,8 +203,16 @@ function WriteAllPost($posts): string
             . "<div class='panel-heading'>"
             . "<div class='panel panel-default'>"
             . "<div class='panel-thumbnail'>";
-        foreach ($p['img'] as $img)
-            $result .= "<img alt='Post' src='assets/uploads/" . $img . "' class='img-responsive'/>";
+        foreach ($p['medias'] as $m) {
+                if (strpos($m["type"], "image/") !== false) {
+                    $result .= "<img alt='Post' src='assets/uploads/" . $m['media'] . "' class='img-responsive'/>";
+                } else if (strpos($m['type'], "video/") !== false) {
+                    $result .= "<video controls autoplay loop>
+                            <source src='assets/uploads/" . $m['media']. "' type='" . $p['type'] . "'>
+                            Your browser does not support the video tag.
+                        </video>";
+            }
+        }
         $result .= "</div>"
             . "<div class='panel-body'>"
             . "<p class='lead'>" . $p['commentaire'] . "</p>"

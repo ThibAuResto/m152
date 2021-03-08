@@ -8,7 +8,7 @@ require_once("constantes.inc.php");
  *
  * @return PDO|null PDO if succeed else null
  */
-function connectDB()
+function connectDB(): ?PDO
 {
     static $myDb = null;
     try {
