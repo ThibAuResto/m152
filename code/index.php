@@ -4,12 +4,14 @@ require_once "assets/php/functions.inc.php";
 $posts = ReadAllPost();
 $new = array();
 $compteur = 0;
+define("UPLOAD_DIR", "assets/uploads/");
 
 // Create the new array with the images connect with the post
 for ($i = 0; $i < count($posts); $i++) {
     if (!array_key_exists($posts[$i]["idPost"], $new)) {
         $new[$posts[$i]["idPost"]] = array(
             'commentaire' => $posts[$i]["commentaire"],
+            'idPost' => $posts[$i]["idPost"],
             'medias' => array(
                 array(
                     'media' => $posts[$i]["nomMedia"],
@@ -62,8 +64,7 @@ for ($i = 0; $i < count($posts); $i++) {
                                         <p>45 Followers, 13 Posts</p>
 
                                         <p>
-                                            <img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px"
-                                                 width="28px"/>
+                                            <img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px" width="28px"/>
                                         </p>
                                     </div>
                                 </div>
@@ -75,7 +76,7 @@ for ($i = 0; $i < count($posts); $i++) {
                                     <h1>Welcome</h1>
                                 </div>
 
-                                <?= WriteAllPost($new) ?>
+                                <?= WriteAllPost($new, UPLOAD_DIR) ?>
                                 <!--/row-->
 
                                 <div class="row">
