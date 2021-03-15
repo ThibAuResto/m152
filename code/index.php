@@ -1,5 +1,5 @@
 <?php
-require_once "assets/php/functions.inc.php";
+require_once __DIR__ . "/assets/php/functions.inc.php";
 
 $posts = ReadAllPost();
 $new = array();

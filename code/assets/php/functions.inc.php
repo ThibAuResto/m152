@@ -11,7 +11,7 @@ require_once "database.php";
 function ReadAllPost()
 {
     static $ps = null;
-    $sql = "SELECT * FROM post INNER JOIN media ON post.idPost = media.idPost ORDER BY media.creationDate DESC";
+    $sql = "SELECT * FROM post INNER JOIN media ON post.idPost = media.idPost ORDER BY media.creationDate DESC LIMIT 100";
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
@@ -123,10 +123,40 @@ function InsertMediaAndPost($files, $textArea, $nameOfPost, $uploadsDir)
     }
 }
 
+/**
+ * Get the ids of the medias for the delete
+ *
+ * @param $idPost
+ * @return array|false
+ */
 function GetIdMediaUsingIdPost($idPost)
 {
     static $ps = null;
     $sql = "SELECT idMedia FROM media WHERE idPost = :IDPOST";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+        $ps->bindParam("IDPOST", $idPost, PDO::PARAM_INT);
+
+        if ($ps->execute())
+            return $ps->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+/**
+ * Get the name of the posts for unlink in the tmp folder
+ *
+ * @param $idPost
+ * @return array|false
+ */
+function GetNameOfThePostsUsingIdPost($idPost)
+{
+    static $ps = null;
+    $sql = "SELECT nomMedia FROM media WHERE idPost = :IDPOST";
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
@@ -187,13 +217,30 @@ function DeletePost($idPost): bool
 }
 
 /**
+ * Delete the file in the folder
+ *
+ * @param $nameOfPosts
+ * @param $uploadsDir
+ */
+function UnlinkMediaInFolder($nameOfPosts, $uploadsDir){
+    try {
+        for($i = 0; $i < count($nameOfPosts); $i++)
+            unlink($uploadsDir . $nameOfPosts[$i]["nomMedia"]);
+    } catch (Exception $e){
+        echo $e->getMessage();
+    }
+}
+
+/**
  * Transaction Delete media and post
  *
  * @param $idMedias
  * @param $idPost
+ * @param $nameOfPosts
+ * @param $uploadsDir
  * @return bool
  */
-function DeleteMediaAndPost($idMedias, $idPost): bool
+function DeleteMediaAndPost($idMedias, $idPost, $nameOfPosts, $uploadsDir): bool
 {
     static $dbh = null;
     if ($dbh == null)
@@ -202,6 +249,7 @@ function DeleteMediaAndPost($idMedias, $idPost): bool
     try {
         DeleteMedia($idMedias);
         DeletePost($idPost);
+        UnlinkMediaInFolder($nameOfPosts, $uploadsDir);
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();;
