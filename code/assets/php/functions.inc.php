@@ -25,6 +25,30 @@ function ReadAllPost()
 }
 
 /**
+ * Read the post by his id
+ *
+ * @param $idPost
+ * @return array|false
+ */
+function ReadPostById($idPost)
+{
+    static $ps = null;
+    $sql = "SELECT * FROM media as m INNER JOIN post as p ON m.idPost=p.idPost WHERE m.idPost=:IDPOST";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+        $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_STR);
+        if ($ps->execute())
+            return $ps->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+
+/**
  * Insert a new post in the database
  *
  * @param $textArea
@@ -124,30 +148,6 @@ function InsertMediaAndPost($files, $textArea, $nameOfPost, $uploadsDir)
 }
 
 /**
- * Get the ids of the medias for the delete
- *
- * @param $idPost
- * @return array|false
- */
-function GetIdMediaUsingIdPost($idPost)
-{
-    static $ps = null;
-    $sql = "SELECT idMedia FROM media WHERE idPost = :IDPOST";
-    try {
-        if ($ps == null)
-            $ps = connectDB()->prepare($sql);
-
-        $ps->bindParam("IDPOST", $idPost, PDO::PARAM_INT);
-
-        if ($ps->execute())
-            return $ps->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        echo $e->getMessage();
-        return false;
-    }
-}
-
-/**
  * Get the name of the posts for unlink in the tmp folder
  *
  * @param $idPost
@@ -174,19 +174,18 @@ function GetNameOfThePostsUsingIdPost($idPost)
 /**
  * Delete the media
  *
- * @param $idMedias
+ * @param $idPost
  * @return bool
  */
-function DeleteMedia($idMedias): bool
+function DeleteMedia($idPost): bool
 {
     static $ps = null;
-    $sql = "DELETE FROM media WHERE idMedia=:IDMEDIA";
+    $sql = "DELETE FROM media WHERE idPost=:IDPOST";
     try {
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
-        for($i = 0; $i < count($idMedias); $i++)
-            $ps->bindParam(":IDMEDIA", $idMedias[$i]["idMedia"], PDO::PARAM_INT);
+        $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
         return $ps->execute();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -208,7 +207,7 @@ function DeletePost($idPost): bool
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
-            $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
+        $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
         return $ps->execute();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -222,11 +221,12 @@ function DeletePost($idPost): bool
  * @param $nameOfPosts
  * @param $uploadsDir
  */
-function UnlinkMediaInFolder($nameOfPosts, $uploadsDir){
+function UnlinkMediaInFolder($nameOfPosts, $uploadsDir)
+{
     try {
-        for($i = 0; $i < count($nameOfPosts); $i++)
+        for ($i = 0; $i < count($nameOfPosts); $i++)
             unlink($uploadsDir . $nameOfPosts[$i]["nomMedia"]);
-    } catch (Exception $e){
+    } catch (Exception $e) {
         echo $e->getMessage();
     }
 }
@@ -234,20 +234,19 @@ function UnlinkMediaInFolder($nameOfPosts, $uploadsDir){
 /**
  * Transaction Delete media and post
  *
- * @param $idMedias
  * @param $idPost
  * @param $nameOfPosts
  * @param $uploadsDir
  * @return bool
  */
-function DeleteMediaAndPost($idMedias, $idPost, $nameOfPosts, $uploadsDir): bool
+function DeleteMediaAndPost($idPost, $nameOfPosts, $uploadsDir): bool
 {
     static $dbh = null;
     if ($dbh == null)
         $dbh = connectDB();
     $dbh->beginTransaction();
     try {
-        DeleteMedia($idMedias);
+        DeleteMedia($idPost);
         DeletePost($idPost);
         UnlinkMediaInFolder($nameOfPosts, $uploadsDir);
         return $dbh->commit();
@@ -340,14 +339,14 @@ function WriteAllPost($posts, $uploadDir): string
             . "<div class='panel panel-default'>"
             . "<div class='panel-thumbnail'>";
         foreach ($p['medias'] as $m) {
-            if (strpos($m["type"], "image/") !== false)
+            if (strpos($m["type"], "image/") !== false) // image
                 $result .= "<img alt='Post' width='640' height='480' src='" . $uploadDir . $m['media'] . "' class='img-responsive'/>";
-            else if (strpos($m['type'], "video/") !== false) {
+            else if (strpos($m['type'], "video/") !== false) { // video
                 $result .= "<video width='640' height='480' controls autoplay loop muted class='img-responsive'>
                                 <source src='" . $uploadDir . $m['media'] . "' type='" . $p['type'] . "'>
                                 Your browser does not support the video tag.
                             </video>";
-            } else if (strpos($m['type'], "audio/") !== false) {
+            } else if (strpos($m['type'], "audio/") !== false) { // audio
                 $result .= "<audio controls>
                                 <source src='" . $uploadDir . $m['media'] . "' type='" . $p['type'] . "'>
                                 Your browser does not support the audio element.
@@ -357,10 +356,10 @@ function WriteAllPost($posts, $uploadDir): string
         $result .= "</div>"
             . "<div class='panel-body'>"
             . "<p class='lead'>" . $p['commentaire'] . "</p>"
-            . "<a class='btn btn-link' href='#'>"
+            . "<a class='btn btn-link' href='update.php?idPost=" . $p['idPost'] . "'>"
             . "<img alt='modif' src='assets/img/editing.png'/>"
             . "</a>"
-            . "<a class='btn btn-link' href='delete.php?&idPost=" . $p["idPost"] . "'>"
+            . "<a class='btn btn-link' href='delete.php?&idPost=" . $p['idPost'] . "'>"
             . "<img alt='supp' src='assets/img/delete.png'/>"
             . "</a>"
             . "</div>"
@@ -368,5 +367,47 @@ function WriteAllPost($posts, $uploadDir): string
             . "</div>"
             . "</div>";
     }
+    return $result;
+}
+
+/**
+ * Create a fill the form for the update
+ *
+ * @param $posts
+ * @param $uploadDir
+ * @return string
+ */
+function CreateUpdateForm($posts, $uploadDir): string
+{
+    $result = "";
+
+    //textArea
+    $result .= "<label for='textArea' class='visually-hidden'>textArea</label>";
+    $result .= "<textarea class='mb-3 form-control' id='textArea' name='textArea' required autofocus>" . $posts[0]['commentaire'] . "</textarea>";
+    // Checkboxes
+    $result .= "<div class='row'>";
+    for ($i = 0; $i < count($posts); $i++) {
+        $result .= "<div class='col-md-3'>";
+        $result .= "<div class='custom-control custom-checkbox image-checkbox'>";
+        $result .= "<input type='checkbox' class='custom-control-input' id='ck" . $i . "' checked>";
+        $result .= "<label class='custom-control-label' for='ck" . $i . "'>";
+        if (strpos($posts[$i]['typeMedia'], "image/") !== false) // image
+            $result .= "<img src='" . $uploadDir . $posts[$i]['nomMedia'] . "' alt='" . $posts[$i]['nomMedia'] . "' class='img-fluid'/>";
+        else if (strpos($posts[$i]['typeMedia'], "video/") !== false) {
+            $result .= "<video class='img-fluid' autoplay loop muted class='img-responsive'>";
+            $result .= "<source src='" . $uploadDir . $posts[$i]['nomMedia'] . "' type='" . $posts[$i]['typeMedia'] . "'>";
+            $result .= "Your browser does not support the video tag.";
+            $result .= "</video>";
+        }
+        $result .= "</label>";
+        $result .= "</div>";
+        $result .= "</div>";
+    }
+    $result .= "</div>";
+
+
+    // Files
+    $result .= "<label for='inputFile' class='visually-hidden'>Media</label>";
+    $result .= "<input type='file' name='mediaFiles[]' id='inputFile' class='mb-3 form-control-file' accept='image/*, video/*, audio/*' multiple required/>";
     return $result;
 }

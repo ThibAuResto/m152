@@ -36,9 +36,7 @@ for ($i = 0; $i < count($posts); $i++) {
     <title>M152 - Thibault Capt</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link href="assets/css/bootstrap.css" rel="stylesheet"/>
-    <!--[if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
     <link href="assets/css/style.css" rel="stylesheet"/>
 </head>
 
@@ -64,7 +62,8 @@ for ($i = 0; $i < count($posts); $i++) {
                                         <p>45 Followers, 13 Posts</p>
 
                                         <p>
-                                            <img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px" width="28px"/>
+                                            <img src="assets/img/uFp_tsTJboUY7kue5XAsGAs28.png" height="28px"
+                                                 width="28px"/>
                                         </p>
                                     </div>
                                 </div>
