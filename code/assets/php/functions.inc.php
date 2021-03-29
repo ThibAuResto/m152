@@ -47,7 +47,6 @@ function ReadPostById($idPost)
     }
 }
 
-
 /**
  * Insert a new post in the database
  *
@@ -287,7 +286,7 @@ function DeleteMediaAndPost($idPost, $nameOfPosts, $uploadsDir): bool
 function RemoveLastInsertPostInTheFolder($files, $uploadsDir)
 {
     try {
-        foreach($files['name'] as $f) {
+        foreach ($files['name'] as $f) {
             $path = $uploadsDir . DIRECTORY_SEPARATOR . $f;
             unlink($path);
         }
@@ -412,9 +411,9 @@ function UpdatePost($commentaire, $idPost): bool
         if ($ps == null)
             $ps = connectDB()->prepare($sql);
 
-            $ps->bindParam(":COMMENTAIRE", $commentaire, PDO::PARAM_STR);
-            $ps->bindParam(":MODIFICATIONDATE", $date, PDO::PARAM_STR);
-            $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
+        $ps->bindParam(":COMMENTAIRE", $commentaire, PDO::PARAM_STR);
+        $ps->bindParam(":MODIFICATIONDATE", $date, PDO::PARAM_STR);
+        $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
 
         return $ps->execute();
     } catch (Exception $e) {
@@ -444,7 +443,7 @@ function UpdateMediaAndPost($files, $textArea, $uploadsDir, $idPost)
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
-            RemoveLastInsertPostInTheFolder($files, $uploadsDir);
+        RemoveLastInsertPostInTheFolder($files, $uploadsDir);
         return $dbh->rollBack();
     }
 }
@@ -459,7 +458,7 @@ function UpdateMediaAndPost($files, $textArea, $uploadsDir, $idPost)
 function CompareMedias($uploaded, $posts): array
 {
     $tmpArray = array();
-    for($i = 0; $i < count($posts); $i++)
+    for ($i = 0; $i < count($posts); $i++)
         array_push($tmpArray, $posts[$i]['nomMedia']);
 
     if (count($uploaded) < count($tmpArray)) {

@@ -15,7 +15,7 @@ $error = "";
 // Press Submit
 if (isset($submit) && !empty($submit)) {
     // A file is detected?
-    if (isset($medias) && !empty($medias)) {
+    if (!empty($medias['name'][0])) {
         // Add the size to know when the size is 70 mega
         $tmpSize = GetSizeOfTheUpload($medias);
 
