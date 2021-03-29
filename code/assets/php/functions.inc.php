@@ -113,8 +113,9 @@ function InsertMedia($files, $id): bool
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
             $ps->bindParam(":NOMMEDIA", $value['name'], PDO::PARAM_STR);
             $ps->bindParam(":IDPOST", $id, PDO::PARAM_INT);
+            $ps->execute();
         }
-        return $ps->execute();
+        return true;
     } catch (Exception $e) {
         echo $e->getMessage();
         return false;
