@@ -3,6 +3,8 @@ require_once "assets/php/functions.inc.php";
 
 $submit = filter_input(INPUT_POST, 'submit', FILTER_SANITIZE_STRING);
 $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_STRING);
+$updatedImages = filter_input(INPUT_POST, 'updatedImages', FILTER_SANITIZE_STRING);
+
 
 $idPost = filter_input(INPUT_GET, "idPost", FILTER_VALIDATE_INT);
 if (empty($idPost))
@@ -62,7 +64,7 @@ if (isset($submit) && !empty($submit)) {
 </head>
 <body class="text-center">
 <main class="form-signin">
-    <form action="post.php" method="post" enctype="multipart/form-data">
+    <form action="update.php?idPost=<?= $idPost ?>" method="post" enctype="multipart/form-data">
 
         <!-- header -->
         <img class="mb-4" src="assets/img/image.svg" alt="Image" width="96" height="96"/>

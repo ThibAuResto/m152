@@ -389,7 +389,7 @@ function CreateUpdateForm($posts, $uploadDir): string
     for ($i = 0; $i < count($posts); $i++) {
         $result .= "<div class='col-md-3'>";
         $result .= "<div class='custom-control custom-checkbox image-checkbox'>";
-        $result .= "<input type='checkbox' class='custom-control-input' id='ck" . $i . "' checked>";
+        $result .= "<input type='checkbox' class='custom-control-input' id='ck" . $i . "' value='" . $posts[$i]['nomMedia'] . "' name='updatedImages[]' checked>";
         $result .= "<label class='custom-control-label' for='ck" . $i . "'>";
         if (strpos($posts[$i]['typeMedia'], "image/") !== false) // image
             $result .= "<img src='" . $uploadDir . $posts[$i]['nomMedia'] . "' alt='" . $posts[$i]['nomMedia'] . "' class='img-fluid'/>";
@@ -408,6 +408,6 @@ function CreateUpdateForm($posts, $uploadDir): string
 
     // Files
     $result .= "<label for='inputFile' class='visually-hidden'>Media</label>";
-    $result .= "<input type='file' name='mediaFiles[]' id='inputFile' class='mb-3 form-control-file' accept='image/*, video/*, audio/*' multiple required/>";
+    $result .= "<input type='file' name='mediaFiles[]' id='inputFile' class='mb-3 form-control-file' accept='image/*, video/*, audio/*' multiple/>";
     return $result;
 }
