@@ -38,24 +38,20 @@ if (isset($submit) && !empty($submit)) {
         $tmpSize = GetSizeOfTheUpload($medias);
 
         // Create temporary array with the name, the type and the size
-        for ($i = 0; $i < count($medias['name']); $i++) {
+        for ($i = 0; $i < count($medias['name']); $i++)
             // The media is under 3 megabytes, is it an image and the total is under 70 mega?
             if ($medias['size'][$i] < 3 * pow(10, 6) && strpos($medias["type"][$i], "image/") !== false || strpos($medias["type"][$i], "video/") !== false || strpos($medias["type"][$i], "audio/") !== false && $tmpSize <= 70 * pow(10, 6)) {
                 $name = GetRandomString();
                 // if the file has been move
-                if (move_uploaded_file($medias['tmp_name'][$i], UPLOAD_DIR . $name)) {
-                    array_push($tmpMedias, array(
-                        'name' => $name,
-                        'type' => $medias['type'][$i]
-                    ));
-                    UpdateMediaAndPost($tmpMedias, $textArea, UPLOAD_DIR, $idPost);
-                    $tmpMedias = array();
-                    header("Location: index.php");
-                    exit();
-                }
-            } else // If an error is detected
-                $error = "Une erreur a été détectée lors de l'ajout du/des média(s).";
-        }
+                if (move_uploaded_file($medias['tmp_name'][$i], UPLOAD_DIR . $name))
+                    array_push($tmpMedias, array('name' => $name, 'type' => $medias['type'][$i]));
+            }
+        if (UpdateMediaAndPost($tmpMedias, $textArea, UPLOAD_DIR, $idPost)) {
+            $tmpMedias = array();
+            header("Location: index.php");
+            exit();
+        } else // If an error is detected
+            $error = "Une erreur a été détectée lors de l'ajout du/des média(s).";
     } else {
         if (UpdatePost($textArea, $idPost)) {
             header("Location: index.php");
