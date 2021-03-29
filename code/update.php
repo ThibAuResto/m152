@@ -3,8 +3,7 @@ require_once "assets/php/functions.inc.php";
 
 $submit = filter_input(INPUT_POST, 'submit', FILTER_SANITIZE_STRING);
 $textArea = filter_input(INPUT_POST, 'textArea', FILTER_SANITIZE_STRING);
-$updatedImages = filter_input(INPUT_POST, 'updatedImages', FILTER_SANITIZE_STRING);
-
+$updatedImages = filter_input(INPUT_POST, 'updatedImages', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
 
 $idPost = filter_input(INPUT_GET, "idPost", FILTER_VALIDATE_INT);
 if (empty($idPost))
@@ -18,12 +17,23 @@ $tmpMedias = array();
 $tmpSize = 0;
 $result = "";
 $error = "";
+$arrayToDelete = array();
 
-/*
+
 // Press Submit
 if (isset($submit) && !empty($submit)) {
+
+    // If an image has been unchecked, remove it
+    $arrayToDelete = CompareMedias($updatedImages, $posts);
+    if (!empty($arrayToDelete)) {
+        foreach ($arrayToDelete as $atd) {
+            unlink(UPLOAD_DIR . $atd);
+            DeleteMediaByName($atd);
+        }
+    }
+
     // A file is detected?
-    if (isset($medias) && !empty($medias)) {
+    if (!empty($medias['name'][0])) {
         // Add the size to know when the size is 70 mega
         $tmpSize = GetSizeOfTheUpload($medias);
 
@@ -38,16 +48,21 @@ if (isset($submit) && !empty($submit)) {
                         'name' => $name,
                         'type' => $medias['type'][$i]
                     ));
-                    InsertMediaAndPost($tmpMedias, $textArea, $name, UPLOAD_DIR);
+                    UpdateMediaAndPost($tmpMedias, $textArea, UPLOAD_DIR, $idPost);
                     $tmpMedias = array();
-                    // Result
-                    $result = "Le post a bien été pris en compte.";
+                    header("Location: index.php");
+                    exit();
                 }
             } else // If an error is detected
                 $error = "Une erreur a été détectée lors de l'ajout du/des média(s).";
         }
+    } else {
+        if (UpdatePost($textArea, $idPost)) {
+            header("Location: index.php");
+            exit();
+        } else $error = "Une erreur a été détectée lors de la modification";
     }
-}*/
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">

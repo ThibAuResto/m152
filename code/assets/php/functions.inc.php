@@ -112,7 +112,7 @@ function InsertMedia($files, $id): bool
         foreach ($files as $value) {
             $ps->bindParam(":TYPEMEDIA", $value['type'], PDO::PARAM_STR);
             $ps->bindParam(":NOMMEDIA", $value['name'], PDO::PARAM_STR);
-            $ps->bindParam(":IDPOST", $id["idPost"], PDO::PARAM_INT);
+            $ps->bindParam(":IDPOST", $id, PDO::PARAM_INT);
         }
         return $ps->execute();
     } catch (Exception $e) {
@@ -126,11 +126,10 @@ function InsertMedia($files, $id): bool
  *
  * @param $files
  * @param $textArea
- * @param $nameOfPost
  * @param $uploadsDir
  * @return mixed
  */
-function InsertMediaAndPost($files, $textArea, $nameOfPost, $uploadsDir)
+function InsertMediaAndPost($files, $textArea, $uploadsDir)
 {
     static $dbh = null;
     if ($dbh == null)
@@ -138,11 +137,11 @@ function InsertMediaAndPost($files, $textArea, $nameOfPost, $uploadsDir)
     $dbh->beginTransaction();
     try {
         InsertPost($textArea);
-        InsertMedia($files, GetLastPost());
+        InsertMedia($files, GetLastPost()["idPost"]);
         return $dbh->commit();
     } catch (Exception $e) {
         echo $e->getMessage();
-        RemoveLastInsertPostInTheFolder($nameOfPost, $uploadsDir);
+        RemoveLastInsertPostInTheFolder($files, $uploadsDir);
         return $dbh->rollBack();
     }
 }
@@ -186,6 +185,28 @@ function DeleteMedia($idPost): bool
             $ps = connectDB()->prepare($sql);
 
         $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
+        return $ps->execute();
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+/**
+ * Delete a media by his name
+ *
+ * @param $name
+ * @return bool
+ */
+function DeleteMediaByName($name): bool
+{
+    static $ps = null;
+    $sql = "DELETE FROM media WHERE nomMedia=:NOMMEDIA";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+        $ps->bindParam(":NOMMEDIA", $name, PDO::PARAM_STR);
         return $ps->execute();
     } catch (Exception $e) {
         echo $e->getMessage();
@@ -259,14 +280,16 @@ function DeleteMediaAndPost($idPost, $nameOfPosts, $uploadsDir): bool
 /**
  * If we have an error with the transaction, remove the media in the folder
  *
- * @param $name
+ * @param $files
  * @param $uploadsDir
  */
-function RemoveLastInsertPostInTheFolder($name, $uploadsDir)
+function RemoveLastInsertPostInTheFolder($files, $uploadsDir)
 {
-    $path = $uploadsDir . DIRECTORY_SEPARATOR . $name;
     try {
-        unlink($path);
+        foreach($files['name'] as $f) {
+            $path = $uploadsDir . DIRECTORY_SEPARATOR . $f;
+            unlink($path);
+        }
     } catch (Exception $e) {
         echo $e->getMessage();
     }
@@ -369,6 +392,86 @@ function WriteAllPost($posts, $uploadDir): string
     }
     return $result;
 }
+
+
+/**
+ * Insert a new media in the database
+ *
+ * @param $commentaire
+ * @param $idPost
+ * @return bool
+ */
+function UpdatePost($commentaire, $idPost): bool
+{
+    $date = date_format(date_create(), "Y-m-d H:m:s");
+
+    static $ps = null;
+    $sql = "UPDATE post SET commentaire = :COMMENTAIRE, modificationDate = :MODIFICATIONDATE WHERE idPost = :IDPOST";
+    try {
+        if ($ps == null)
+            $ps = connectDB()->prepare($sql);
+
+            $ps->bindParam(":COMMENTAIRE", $commentaire, PDO::PARAM_STR);
+            $ps->bindParam(":MODIFICATIONDATE", $date, PDO::PARAM_STR);
+            $ps->bindParam(":IDPOST", $idPost, PDO::PARAM_INT);
+
+        return $ps->execute();
+    } catch (Exception $e) {
+        echo $e->getMessage();
+        return false;
+    }
+}
+
+/**
+ * Transaction of the query of insert a media and insert a post
+ *
+ * @param $files
+ * @param $textArea
+ * @param $uploadsDir
+ * @param $idPost
+ * @return mixed
+ */
+function UpdateMediaAndPost($files, $textArea, $uploadsDir, $idPost)
+{
+    static $dbh = null;
+    if ($dbh == null)
+        $dbh = connectDB();
+    $dbh->beginTransaction();
+    try {
+        UpdatePost($textArea, $idPost);
+        InsertMedia($files, $idPost);
+        return $dbh->commit();
+    } catch (Exception $e) {
+        echo $e->getMessage();
+            RemoveLastInsertPostInTheFolder($files, $uploadsDir);
+        return $dbh->rollBack();
+    }
+}
+
+/**
+ * Compare the two arays to find out if the user has uncheck images
+ *
+ * @param $uploaded
+ * @param $posts
+ * @return array
+ */
+function CompareMedias($uploaded, $posts): array
+{
+    $tmpArray = array();
+    for($i = 0; $i < count($posts); $i++)
+        array_push($tmpArray, $posts[$i]['nomMedia']);
+
+    if (count($uploaded) < count($tmpArray)) {
+        foreach ($tmpArray as $tmp) {
+            for ($j = 0; $j < count($uploaded); $j++) {
+                if ($tmp === $uploaded[$j])
+                    unset($tmpArray[$j]);
+            }
+        }
+    } else $tmpArray = array();
+    return $tmpArray;
+}
+
 
 /**
  * Create a fill the form for the update

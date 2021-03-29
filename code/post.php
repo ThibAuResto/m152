@@ -30,10 +30,12 @@ if (isset($submit) && !empty($submit)) {
                         'name' => $name,
                         'type' => $medias['type'][$i]
                     ));
-                    InsertMediaAndPost($tmpMedias, $textArea, $name, UPLOAD_DIR);
+                    InsertMediaAndPost($tmpMedias, $textArea, UPLOAD_DIR);
                     $tmpMedias = array();
                     // Result
                     $result = "Le post a bien été pris en compte.";
+                    header("Location: index.php");
+                    exit();
                 }
             } else // If an error is detected
                 $error = "Une erreur a été détectée lors de l'ajout du/des média(s).";
