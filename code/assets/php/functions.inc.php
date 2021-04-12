@@ -380,10 +380,10 @@ function WriteAllPost($posts, $uploadDir): string
             . "<div class='panel-body'>"
             . "<p class='lead'>" . $p['commentaire'] . "</p>"
             . "<a class='btn btn-link' href='update.php?idPost=" . $p['idPost'] . "'>"
-            . "<img alt='modif' src='assets/img/editing.png'/>"
+            . "<img alt='modif' src='assets/img/update.png' width='32' height='32'/>"
             . "</a>"
             . "<a class='btn btn-link' href='delete.php?&idPost=" . $p['idPost'] . "'>"
-            . "<img alt='supp' src='assets/img/delete.png'/>"
+            . "<img alt='supp' src='assets/img/delete.png' width='32' height='32'/>"
             . "</a>"
             . "</div>"
             . "</div>"
@@ -464,8 +464,10 @@ function CompareMedias($uploaded, $posts): array
     if (count($uploaded) < count($tmpArray)) {
         foreach ($tmpArray as $tmp) {
             for ($j = 0; $j < count($uploaded); $j++) {
-                if ($tmp === $uploaded[$j])
-                    unset($tmpArray[$j]);
+                if ($tmp === $uploaded[$j]) {
+                    $index = array_search($uploaded[$j], $tmpArray);
+                    unset($tmpArray[$index]);
+                }
             }
         }
     } else $tmpArray = array();
